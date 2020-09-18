@@ -72,20 +72,19 @@ class MEGBlock(GNBlock):
                     or you can set the parameter 'activation_func' to use other activation function")
 
     def _state_init(self, data):
-        if self.no_global:
-            if isinstance(data, Batch):
-                global_state = torch.zeros((data.num_graphs, self.units_u[0]), dtype=torch.float)
-            elif not isinstance(data, Batch):
-                global_state = torch.zeros((1, self.units_u[0]))
-            else:
-                raise TypeError(
-                    "The type of 'batch' must be torch_geometric.data.Data or torch_geometric.data.Batch")
-        else:
-            assert 'global_state' in self.others.keys(), \
-                "The parameter 'no_global' is set to be False, you must set parameters 'global_state' for updating global information."
-            global_state = self.others['global_state']
-
         if 'global_state' not in data.keys:
+            if self.no_global:
+                if isinstance(data, Batch):
+                    global_state = torch.zeros((data.num_graphs, self.units_u[0]), dtype=torch.float)
+                elif not isinstance(data, Batch):
+                    global_state = torch.zeros((1, self.units_u[0]))
+                else:
+                    raise TypeError(
+                        "The type of 'batch' must be torch_geometric.data.Data or torch_geometric.data.Batch")
+            else:
+                assert 'global_state' in self.others.keys(), \
+                    "The parameter 'no_global' is set to be False, you must set parameters 'global_state' for updating global information."
+                global_state = self.others['global_state']
             data.global_state = global_state
         return data
 
