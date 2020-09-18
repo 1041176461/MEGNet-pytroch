@@ -23,7 +23,7 @@ class MEGBlock(GNBlock):
             rho_v_u(v_p, data): aggregate nodes to global attributes
         """
     def __init__(self, units_phi, units_before=[[64, 64, 64], [32, 32, 32]], \
-                 no_global=True, pool_method='mean', activation=None, use_bias=True, **kwargs):
+                 no_global=True, pool_method='mean', activation=nn.ReLU, use_bias=True, **kwargs):
         """
             Args:
                 units_phi (list): the hidden layer in_features for update fully-connected neural network.
@@ -35,13 +35,11 @@ class MEGBlock(GNBlock):
                 no_global (bool): if True, defalut global information will be set zeros. If False, you need to set parameter 'global_state' for
                             global information.
                 pool_method (str): 'mean', 'sum', 'max' or 'min', determines how information is gathered to nodes from neighboring edges
-                activation (str): Default: None. The activation function used for each sub-neural network. Examples include
-                            'relu', 'softmax', 'tanh', 'sigmoid' or you can set parameter 'activation_func' to use other function''
+                activation (callable): The activation function used for each sub-neural network, e.g. nn.ReLU, nn.Tanh
                 use_bias (bool): Default: True. Whether to use the bias term in the neural network.
 
             **kwargs:
                 global_state (Tensor): global information
-                activation_func (callable): set another activation function except 'relu', 'softmax', 'tanh' and 'sigmoid'
         """
         super(MEGBlock, self).__init__()
         self.units_e = units_phi[0]
@@ -50,26 +48,11 @@ class MEGBlock(GNBlock):
         self.units_before = np.array(units_before)
         self.no_global = no_global
         self.pool_method = pool_method
+        self.activation = activation
         self.use_bias = use_bias
-
         self.others = {}
         for key, value in kwargs.items():
             self.others[key] = value
-
-        self.activation = activation
-        if self.activation == 'relu':
-            self.act = nn.ReLU
-        elif self.activation == 'softmax':
-            self.act = nn.Softmax
-        elif self.activation == 'tanh':
-            self.act = nn.Tanh
-        elif self.activation == 'sigmoid':
-            self.act = nn.Sigmoid
-        elif 'activation_func' in self.others.keys():
-            self.act = self.others['activation_func']
-        else:
-            raise ValueError(f"There is no activation function named {self.activation}, \
-                    or you can set the parameter 'activation_func' to use other activation function")
 
     def _state_init(self, data):
         if 'global_state' not in data.keys:
@@ -96,7 +79,7 @@ class MEGBlock(GNBlock):
             if i == 0:
                 layers.add_module(f'{name}-{i}-linear', nn.Linear(in_features=in_features, out_features=units[i], bias=self.use_bias))
             else:
-                layers.add_module(f'{name}-{i}-activation', self.act())
+                layers.add_module(f'{name}-{i}-activation', self.activation())
                 layers.add_module(f'{name}-{i}-linear', nn.Linear(in_features=units[i-1], out_features=units[i], bias=self.use_bias))
         return layers
 
