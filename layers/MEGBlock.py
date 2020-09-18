@@ -22,13 +22,13 @@ class MEGBlock(GNBlock):
             rho_e_u(e_p, data): aggregate edges to global attributes
             rho_v_u(v_p, data): aggregate nodes to global attributes
         """
-    def __init__(self, units_e, units_v, units_u, units_before=[[64, 64, 64], [32, 32, 32]], \
+    def __init__(self, units_phi, units_before=[[64, 64, 64], [32, 32, 32]], \
                  no_global=True, pool_method='mean', activation=None, use_bias=True, **kwargs):
         """
             Args:
-                units_e (list of integers): the hidden layer in_features for edge update fully-connected neural network
-                units_v (list of integers): the hidden layer in_features for node update fully-connected neural network
-                units_u (list of integers): the hidden layer in_features for global information update neural network
+                units_phi (list): the hidden layer in_features for update fully-connected neural network.
+                            Its shape is (3, M), and 3 elements correspond to edge, node and global information respectively.
+                            M represents the number of layers of each update function.
                 units_before (list of integers): the hidden layer infeatures for fully-connected neural network before Graph network.
                             Its shape is (N, 3), in which 'N' represents the number of layers. Each layer has three elements corresponding
                             to edge, node and global_state respectively.
@@ -44,9 +44,9 @@ class MEGBlock(GNBlock):
                 activation_func (callable): set another activation function except 'relu', 'softmax', 'tanh' and 'sigmoid'
         """
         super(MEGBlock, self).__init__()
-        self.units_e = units_e
-        self.units_v = units_v
-        self.units_u = units_u
+        self.units_e = units_phi[0]
+        self.units_v = units_phi[1]
+        self.units_u = units_phi[2]
         self.units_before = np.array(units_before)
         self.no_global = no_global
         self.pool_method = pool_method
