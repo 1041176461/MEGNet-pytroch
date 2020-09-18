@@ -35,11 +35,11 @@ class MEGBlock(GNBlock):
                 no_global (bool): if True, defalut global information will be set zeros. If False, you need to set parameter 'global_state' for
                             global information.
                 pool_method (str): 'mean', 'sum', 'max' or 'min', determines how information is gathered to nodes from neighboring edges
-                activation (callable): The activation function used for each sub-neural network, e.g. nn.ReLU, nn.Tanh
-                use_bias (bool): Default: True. Whether to use the bias term in the neural network.
+                activation (subclass of torch.nn): The activation function used for each sub-neural network, e.g. nn.ReLU, nn.Tanh
+                use_bias (bool): default: True. Whether to use the bias term in the neural network.
 
             **kwargs:
-                global_state (Tensor): global information
+                global_state (Tensor): initial global information
         """
         super(MEGBlock, self).__init__()
         self.units_e = units_phi[0]
