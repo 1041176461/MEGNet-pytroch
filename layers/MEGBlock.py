@@ -32,7 +32,7 @@ class MEGBlock(GNBlock):
                 units_before (list of integers): the hidden layer infeatures for fully-connected neural network before Graph network.
                             Its shape is (N, 3), in which 'N' represents the number of layers. Each layer has three elements corresponding
                             to edge, node and global_state respectively.
-                no_global (bool): if True, global information will be set zeros. If False, you need to set parameter 'global_state' for
+                no_global (bool): if True, defalut global information will be set zeros. If False, you need to set parameter 'global_state' for
                             global information.
                 pool_method (str): 'mean', 'sum', 'max' or 'min', determines how information is gathered to nodes from neighboring edges
                 activation (str): Default: None. The activation function used for each sub-neural network. Examples include
