@@ -22,7 +22,7 @@ class MEGBlock(GNBlock):
             rho_e_u(e_p, data): aggregate edges to global attributes
             rho_v_u(v_p, data): aggregate nodes to global attributes
         """
-    def __init__(self, units_phi, units_before=[[64, 64, 64], [32, 32, 32]], \
+    def __init__(self, units_phi, units_before=[[64, 64, 64], [32, 32, 32]],
                  no_global=True, pool_method='mean', activation=nn.ReLU, use_bias=True, **kwargs):
         """
             Args:

@@ -14,7 +14,8 @@ class MEGNet(nn.Module):
     Graph Networks as a Universal Machine Learning Framework for Molecules and Crystals,
     2018, arXiv preprint. [arXiv:1812.05055](https://arxiv.org/abs/1812.05055)
     """
-    def __init__(self, no_global=True, pool_method='mean', act=nn.ReLU, processing_steps=10, num_lstm_layers=1):
+    def __init__(self, no_global=True, pool_method='mean', activation=nn.ReLU,
+                 processing_steps=10, num_lstm_layers=1, **kwargs):
         """
         Args:
             no_global (bool): if True, defalut global information will be set zeros.
@@ -63,9 +64,7 @@ class MEGNet(nn.Module):
 
     def forward(self, data):
         data = self.block1(data)
-        data = self.act_obj(data)
         data = self.block2(data)
-        data = self.act_obj(data)
 
         edge_set2set = self._set2set_init(data.num_edge_features)
         gedge = gedge_index(data)
@@ -75,8 +74,8 @@ class MEGNet(nn.Module):
         node_res = node_set2set(data.x, gnode)
 
         cat_res = torch.cat((edge_res, node_res, data.global_state), dim=1)
-        out = self._out_init(cat_res.shape[1], len(data.y))
-        return out(cat_res)
+        out_layer = self._out_init(cat_res.shape[1], data.y.shape[1])
+        return out_layer(cat_res)
 
 
 
