@@ -74,25 +74,24 @@ class MEGBlock(GNBlock):
     def _mlp(self, name, units, in_features, out_features):
         units.append(out_features)
         n = len(units)
-        layers = nn.Sequential()
+        self.layers = nn.Sequential()
         for i in range(n):
             if i == 0:
-                layers.add_module(f'{name}-{i}-linear', nn.Linear(in_features=in_features, out_features=units[i], bias=self.use_bias))
+                self.layers.add_module(f'{name}-{i}-linear', nn.Linear(in_features=in_features, out_features=units[i], bias=self.use_bias))
             else:
-                layers.add_module(f'{name}-{i}-activation', self.activation())
-                layers.add_module(f'{name}-{i}-linear', nn.Linear(in_features=units[i-1], out_features=units[i], bias=self.use_bias))
-        return layers
+                self.layers.add_module(f'{name}-{i}-activation', self.activation())
+                self.layers.add_module(f'{name}-{i}-linear', nn.Linear(in_features=units[i-1], out_features=units[i], bias=self.use_bias))
 
     def _first_block(self, data):
         units_e_1, units_v_1, units_u_1 = np.split(self.units_before, 3, axis=1)
         units_e_1, units_v_1, units_u_1 = units_e_1.flatten().tolist(), units_v_1.flatten().tolist(), units_u_1.flatten().tolist()
         e_size, v_size, u_size = data.num_edge_features, data.num_node_features, data.global_state.shape[1]
-        e_layer = self._mlp('first-e_p', units_e_1, e_size, e_size)
-        v_layer = self._mlp('first-v_p', units_v_1, v_size, v_size)
+        self._mlp('first-e_p', units_e_1, e_size, e_size)
+        data.edge_attr = self.layers(data.edge_attr)
+        self._mlp('first-v_p', units_v_1, v_size, v_size)
+        data.x = self.layers(data.x)
         u_layer = self._mlp('first-u_p', units_u_1, u_size, u_size)
-        data.edge_attr = e_layer(data.edge_attr)
-        data.x = v_layer(data.x)
-        data.global_state = u_layer(data.global_state)
+        data.global_state = self.layers(data.global_state)
         return data
 
     def phi_e(self, data):
@@ -109,8 +108,8 @@ class MEGBlock(GNBlock):
         inputs = torch.cat([fr, fs, data.edge_attr], dim=1)
         in_features = inputs.shape[1]
         out_features = data.num_edge_features
-        layers = self._mlp('phi_e', self.units_e, in_features, out_features)
-        return layers(inputs)
+        self._mlp('phi_e', self.units_e, in_features, out_features)
+        return self.layers(inputs)
 
     def rho_e_v(self, e_p, data):
         """
@@ -135,8 +134,8 @@ class MEGBlock(GNBlock):
         inputs = torch.cat([b_ei_p, data.x, u_expand], dim=1)
         in_features = inputs.shape[1]
         out_features = data.num_node_features
-        layers = self._mlp('phi_v', self.units_v, in_features, out_features)
-        return layers(inputs)
+        self._mlp('phi_v', self.units_v, in_features, out_features)
+        return self.layers(inputs)
 
     def rho_e_u(self, e_p, data):
         """
@@ -174,8 +173,8 @@ class MEGBlock(GNBlock):
         inputs = torch.cat([b_e_p, b_v_p, data.global_state], dim=1)
         in_features = inputs.shape[1]
         out_features = data.global_state.shape[1]
-        layers = self._mlp('phi_u', self.units_u, in_features, out_features)
-        return layers(inputs)
+        self._mlp('phi_u', self.units_u, in_features, out_features)
+        return self.layers(inputs)
 
     def forward(self, data):
         data = self._state_init(data)
