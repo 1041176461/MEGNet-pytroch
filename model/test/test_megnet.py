@@ -34,7 +34,7 @@ class Test_MEGNet:
         network = MEGNet(no_global=no_global, activation=nn.ReLU, global_state=u)
         res = network(batch)
         assert  res.shape == batch.y.shape
-        assert len(list(MEG.parameters())) != 0
+        assert len(list(network.parameters())) != 0
 
 if __name__ == '__main__':
     pytest.main(['-s', '--html=report.html', 'test_megnet.py'])
