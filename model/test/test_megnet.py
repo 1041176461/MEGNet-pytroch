@@ -25,6 +25,7 @@ class Test_MEGNet:
         assert new_batch.num_edges == batch.num_edges
         assert new_batch.num_node_features == batch.num_node_features
         assert new_batch.num_nodes == batch.num_nodes
+        assert len(list(MEG.parameters())) != 0
 
     @pytest.mark.parametrize('no_global', [True, False])
     def test_net(self, no_global):
@@ -33,6 +34,7 @@ class Test_MEGNet:
         network = MEGNet(no_global=no_global, activation=nn.ReLU, global_state=u)
         res = network(batch)
         assert  res.shape == batch.y.shape
+        assert len(list(MEG.parameters())) != 0
 
 if __name__ == '__main__':
     pytest.main(['-s', '--html=report.html', 'test_megnet.py'])
