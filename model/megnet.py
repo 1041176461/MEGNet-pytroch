@@ -45,11 +45,12 @@ class MEGNet(nn.Module):
         else:
             self.global_state = []
         self.units_phi = [[10, 12, 13], [10, 14, 16], [10, 15, 17]]
-        self.block1 = MEGBlock(units_phi=self.units_phi, no_global=self.no_global, pool_method=self.pool_method,
+        self.block = nn.Sequential(
+                    MEGBlock(units_phi=self.units_phi, no_global=self.no_global, pool_method=self.pool_method,
+                               activation=self.activation, global_state=self.global_state),
+                    MEGBlock(units_phi=self.units_phi, no_global=self.no_global, pool_method=self.pool_method,
                                activation=self.activation, global_state=self.global_state)
-        self.block2 = MEGBlock(units_phi=self.units_phi, no_global=self.no_global, pool_method=self.pool_method,
-                               activation=self.activation, global_state=self.global_state)
-
+        )
     def _set2set_init(self, in_channels):
         return Set2Set(in_channels, self.processing_steps, self.num_lstm_layers)
 
@@ -63,15 +64,14 @@ class MEGNet(nn.Module):
         ]))
 
     def forward(self, data):
-        data = self.block1(data)
-        data = self.block2(data)
+        data = self.block(data)
 
-        edge_set2set = self._set2set_init(data.num_edge_features)
+        self.edge_set2set = self._set2set_init(data.num_edge_features)
         gedge = gedge_index(data)
-        edge_res = edge_set2set(data.edge_attr, gedge)
-        node_set2set = self._set2set_init(data.num_node_features)
+        edge_res = self.edge_set2set(data.edge_attr, gedge)
+        self.node_set2set = self._set2set_init(data.num_node_features)
         gnode = gnode_index(data)
-        node_res = node_set2set(data.x, gnode)
+        node_res = self.node_set2set(data.x, gnode)
 
         cat_res = torch.cat((edge_res, node_res, data.global_state), dim=1)
         out_layer = self._out_init(cat_res.shape[1], data.y.shape[1])
